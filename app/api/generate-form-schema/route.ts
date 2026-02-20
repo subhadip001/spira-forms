@@ -3,17 +3,17 @@ import { models } from "@/lib/models"
 import { FORM_SCHEMA_GENERATOR_PROMPT } from "@/lib/prompts/form-gen-prompts"
 import { GenerateContentResponse } from "@google/genai"
 import { NextResponse } from "next/server"
-import { ChatCompletionChunk as OpenAIChatCompletionChunk } from "openai/resources/index.mjs"
+import { ChatCompletionChunk } from "groq-sdk/resources/chat/completions.mjs"
 
 export async function POST(req: Request) {
   const {
     prompt,
     streaming = true,
-    provider = "openai",
+    provider = "groq",
   }: {
     prompt: string
     streaming?: boolean
-    provider?: "openai" | "gemini"
+    provider?: "groq" | "gemini"
   } = await req.json()
 
   if (prompt === undefined || prompt === "") {
@@ -82,14 +82,14 @@ export async function POST(req: Request) {
             "Transfer-Encoding": "chunked",
           },
         })
-      } else if (provider === "openai") {
+      } else if (provider === "groq") {
         const stream = await aiApiHandlerStreaming(
           provider,
           {
             system_prompt: FORM_SCHEMA_GENERATOR_PROMPT,
             user_question: prompt,
           },
-          models.openai_models.GPT_5_NANO
+          models.groq_models.COMPOUND
         )
         if (!stream) {
           return new Response(
@@ -102,12 +102,9 @@ export async function POST(req: Request) {
         const readableStream = new ReadableStream({
           async start(controller) {
             for await (const chunk of stream) {
-              if (
-                (chunk as OpenAIChatCompletionChunk).choices[0].delta.content
-              ) {
+              if ((chunk as ChatCompletionChunk).choices[0]?.delta?.content) {
                 let content =
-                  (chunk as OpenAIChatCompletionChunk).choices[0].delta
-                    .content || ""
+                  (chunk as ChatCompletionChunk).choices[0].delta.content || ""
                 if (content) {
                   if (content.includes("```json")) {
                     content = content.replace("```json", "")
@@ -135,12 +132,12 @@ export async function POST(req: Request) {
       }
     } else {
       const response = await aiApiHandler(
-        provider,
+        "groq",
         {
           system_prompt: FORM_SCHEMA_GENERATOR_PROMPT,
           user_question: prompt,
         },
-        models.gemini_models.GEMINI_2_5_FLASH_05_02
+        models.groq_models.COMPOUND
       )
 
       return Response.json({ message: response }, { status: 200 })
