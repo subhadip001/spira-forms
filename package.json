@@ -40,7 +40,7 @@
     "lucide-react": "^0.451.0",
     "marked": "^15.0.6",
     "motion": "^12.15.0",
-    "next": "15.3.2",
+    "next": "15.3.8",
     "next-themes": "^0.3.0",
     "openai": "^4.67.1",
     "papaparse": "^5.4.1",
