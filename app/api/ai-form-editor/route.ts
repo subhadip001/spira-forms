@@ -6,7 +6,7 @@ import {
 } from "@/lib/prompts/form-edit-prompts"
 import { FORM_SCHEMA_GENERATOR_PROMPT } from "@/lib/prompts/form-gen-prompts"
 import { NextResponse } from "next/server"
-import { ChatCompletionChunk as OpenAIChatCompletionChunk } from "openai/resources/index.mjs"
+import { ChatCompletionChunk } from "groq-sdk/resources/chat/completions.mjs"
 
 export async function POST(req: Request) {
   const {
@@ -33,12 +33,12 @@ export async function POST(req: Request) {
   try {
     if (streaming) {
       const stream = await aiApiHandlerStreaming(
-        "openai",
+        "groq",
         {
           system_prompt: FORM_SCHEMA_EDITOR_SYSTEM_PROMPT,
           user_question: userInstruction,
         },
-        models.openai_models.GPT_5_NANO
+        models.groq_models.LLAMA_4_SCOUT_17B_16E_INSTRUCT
       )
       if (!stream) {
         return new Response(
@@ -52,10 +52,9 @@ export async function POST(req: Request) {
       const readableStream = new ReadableStream({
         async start(controller) {
           for await (const chunk of stream) {
-            if ((chunk as OpenAIChatCompletionChunk).choices[0].delta.content) {
+            if ((chunk as ChatCompletionChunk).choices[0]?.delta?.content) {
               const content =
-                (chunk as OpenAIChatCompletionChunk).choices[0].delta.content ||
-                ""
+                (chunk as ChatCompletionChunk).choices[0].delta.content || ""
               if (content) {
                 controller.enqueue(new TextEncoder().encode(content))
               }
@@ -74,12 +73,12 @@ export async function POST(req: Request) {
     }
 
     const response = await aiApiHandler(
-      "openai",
+      "groq",
       {
         system_prompt: FORM_SCHEMA_GENERATOR_PROMPT,
         user_question: userInstruction,
       },
-      models.openai_models.GPT_5_NANO
+      models.groq_models.LLAMA_4_SCOUT_17B_16E_INSTRUCT
     )
 
     return Response.json({ message: response }, { status: 200 })
