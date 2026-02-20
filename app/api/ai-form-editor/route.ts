@@ -38,7 +38,7 @@ export async function POST(req: Request) {
           system_prompt: FORM_SCHEMA_EDITOR_SYSTEM_PROMPT,
           user_question: userInstruction,
         },
-        models.openai_models.GPT_4_1
+        models.openai_models.GPT_5_NANO
       )
       if (!stream) {
         return new Response(
@@ -79,7 +79,7 @@ export async function POST(req: Request) {
         system_prompt: FORM_SCHEMA_GENERATOR_PROMPT,
         user_question: userInstruction,
       },
-      models.openai_models.GPT_4_1
+      models.openai_models.GPT_5_NANO
     )
 
     return Response.json({ message: response }, { status: 200 })

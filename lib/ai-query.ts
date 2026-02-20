@@ -7,7 +7,7 @@ import { GoogleGenAI } from "@google/genai"
 export const createGroqChatCompletionStreaming = async (
   system_prompt: string,
   user_question: string,
-  model = models.groq_models.LLAMA_3_2_90B_VISION
+  model = models.groq_models.LLAMA_4_SCOUT_17B_16E_INSTRUCT
 ) => {
   const API_KEY = process.env.GROQ_API_KEY
   const groq = new Groq({ apiKey: API_KEY })
@@ -25,8 +25,6 @@ export const createGroqChatCompletionStreaming = async (
     ],
     model: model,
     temperature: 0.3,
-    max_tokens: 2048,
-    // top_p: 1,
     stream: true,
     stop: null,
   })
@@ -37,7 +35,7 @@ export const createGroqChatCompletionStreaming = async (
 export const createGroqChatCompletion = async (
   system_prompt: string,
   user_question: string,
-  model = models.groq_models.LLAMA_3_3_70B_VERSATILE
+  model = models.groq_models.LLAMA_4_SCOUT_17B_16E_INSTRUCT
 ) => {
   const API_KEY = process.env.GROQ_API_KEY
   const groq = new Groq({ apiKey: API_KEY })
@@ -56,7 +54,7 @@ export const createGroqChatCompletion = async (
       ],
       model: model,
       temperature: 0.3,
-      max_tokens: 32768,
+      max_tokens: 8192,
       // top_p: 1,
       stream: false,
       stop: null,
@@ -120,10 +118,8 @@ export async function createOpenAIChatCompletion(
       { role: "system", content: system_prompt },
       { role: "user", content: user_question },
     ],
-    model: models.openai_models.GPT_4,
+    model: models.openai_models.GPT_5_NANO,
     stream: false,
-    max_tokens: 4000,
-    temperature: 0.2,
   })
   return response.choices[0].message.content
 }
@@ -140,10 +136,8 @@ export async function createOpenAIChatCompletionStreaming(
       { role: "system", content: system_prompt },
       { role: "user", content: user_question },
     ],
-    model: models.openai_models.CHAT_GPT_4O,
+    model: models.openai_models.GPT_5_NANO,
     stream: true,
-    max_tokens: 4000,
-    temperature: 0.2,
   })
   return response
 }

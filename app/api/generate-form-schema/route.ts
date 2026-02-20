@@ -89,7 +89,7 @@ export async function POST(req: Request) {
             system_prompt: FORM_SCHEMA_GENERATOR_PROMPT,
             user_question: prompt,
           },
-          models.openai_models.GPT_4_1
+          models.openai_models.GPT_5_NANO
         )
         if (!stream) {
           return new Response(
