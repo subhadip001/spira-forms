@@ -1,11 +1,12 @@
 import { aiApiHandlerStreaming, aiApiHandler } from "@/lib/ai-api-handler"
+import { models } from "@/lib/models"
 import {
   RESPONSE_CHAT_SYSTEM_PROMPT,
   RESPONSE_CHAT_USER_PROMPT,
 } from "@/lib/prompts/csv-prompts"
 import { FORM_SCHEMA_GENERATOR_PROMPT } from "@/lib/prompts/form-gen-prompts"
 import { NextResponse } from "next/server"
-import { ChatCompletionChunk as OpenAIChatCompletionChunk } from "openai/resources/index.mjs"
+import { ChatCompletionChunk } from "groq-sdk/resources/chat/completions.mjs"
 
 export async function POST(req: Request) {
   const {
@@ -27,10 +28,14 @@ export async function POST(req: Request) {
 
   try {
     if (streaming) {
-      const stream = await aiApiHandlerStreaming("openai", {
-        system_prompt: RESPONSE_CHAT_SYSTEM_PROMPT,
-        user_question: userPrompt,
-      })
+      const stream = await aiApiHandlerStreaming(
+        "groq",
+        {
+          system_prompt: RESPONSE_CHAT_SYSTEM_PROMPT,
+          user_question: userPrompt,
+        },
+        models.groq_models.LLAMA_4_SCOUT_17B_16E_INSTRUCT
+      )
       if (!stream) {
         return new Response(
           JSON.stringify({ message: "Error processing request" }),
@@ -43,10 +48,9 @@ export async function POST(req: Request) {
       const readableStream = new ReadableStream({
         async start(controller) {
           for await (const chunk of stream) {
-            if ((chunk as OpenAIChatCompletionChunk).choices[0].delta.content) {
+            if ((chunk as ChatCompletionChunk).choices[0]?.delta?.content) {
               const content =
-                (chunk as OpenAIChatCompletionChunk).choices[0].delta.content ||
-                ""
+                (chunk as ChatCompletionChunk).choices[0].delta.content || ""
               if (content) {
                 controller.enqueue(new TextEncoder().encode(content))
               }
@@ -64,10 +68,14 @@ export async function POST(req: Request) {
       })
     }
 
-    const response = await aiApiHandler("openai", {
-      system_prompt: RESPONSE_CHAT_SYSTEM_PROMPT,
-      user_question: userPrompt,
-    })
+    const response = await aiApiHandler(
+      "groq",
+      {
+        system_prompt: RESPONSE_CHAT_SYSTEM_PROMPT,
+        user_question: userPrompt,
+      },
+      models.groq_models.LLAMA_4_SCOUT_17B_16E_INSTRUCT
+    )
 
     return Response.json({ message: response }, { status: 200 })
   } catch (error) {
